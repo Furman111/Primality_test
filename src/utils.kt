@@ -1,6 +1,7 @@
 import java.lang.Math.abs
+import java.util.*
 
-val primitives = listOf<Long>(2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
+private val primitives = listOf<Long>(2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
         73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173,
         179, 181, 191, 193, 197, 199, 211, 223, 227, 229, 233, 239, 241, 251, 257, 263, 269, 271, 277, 281,
         283, 293, 307, 311, 313, 317, 331, 337, 347, 349, 353, 359, 367, 373, 379, 383, 389, 397, 401, 409,
@@ -16,6 +17,24 @@ val primitives = listOf<Long>(2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43
         1663, 1667, 1669, 1693, 1697, 1699, 1709, 1721, 1723, 1733, 1741, 1747, 1753, 1759, 1777, 1783, 1787, 1789, 1801, 1811,
         1823, 1831, 1847, 1861, 1867, 1871, 1873, 1877, 1879, 1889, 1901, 1907, 1913, 1931, 1933, 1949, 1951, 1973, 1979, 1987, 1993, 1997, 1999)
 
+/**
+ * Функция проверки делимости на простые числа до 2000
+ *
+ * @return true - не делится, false - делится
+ */
+fun checkDivisibilityWithPrimitives(x: Long): Boolean {
+    var res = true
+    println("Проверка на делимость на простые числа:")
+    primitives.forEach {
+        if (x != it && x % it == 0L) {
+            println("* $x делится на простое число $it")
+            res = false
+        }
+    }
+    println("Проверка ${if (res) "пройдена" else "не пройдена"}\n")
+    return res
+}
+
 fun gcd(x: Long, y: Long) {
     var first: Long = abs(x)
     var second: Long = abs(y)
@@ -26,4 +45,18 @@ fun gcd(x: Long, y: Long) {
         first = second % first
         second = temp
     }
+}
+
+/**
+ * Функция генерирования p-битового числа
+ *
+ * @param p - число битов от 1 до 63
+ */
+fun generate(p: Int): Long {
+    var generated = Random().nextLong()
+    if (generated % 2 == 0L) generated += 1
+    val max = Math.pow(2.0, (p - 1).toDouble()).toLong()
+    generated = max + generated % max
+    println("Сгенерированное число: $generated\n")
+    return generated
 }

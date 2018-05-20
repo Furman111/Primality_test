@@ -1,5 +1,9 @@
-import java.lang.Math.abs
+import java.math.BigInteger
 import java.util.*
+
+const val TESTS_COUNT = 5
+
+val RANDOM = Random()
 
 private val primitives = listOf<Long>(2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
         73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131, 137, 139, 149, 151, 157, 163, 167, 173,
@@ -22,41 +26,91 @@ private val primitives = listOf<Long>(2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37
  *
  * @return true - не делится, false - делится
  */
-fun checkDivisibilityWithPrimitives(x: Long): Boolean {
-    var res = true
-    println("Проверка на делимость на простые числа:")
-    primitives.forEach {
-        if (x != it && x % it == 0L) {
-            println("* $x делится на простое число $it")
-            res = false
+val BigInteger.dividedByPrimitives: Boolean
+    get() {
+        var res = false
+        println("Проверка на делимость на простые числа:")
+        primitives.forEach {
+            val primitiveBigInt = BigInteger.valueOf(it)
+            if (compareTo(primitiveBigInt) != 0 && mod(primitiveBigInt) == BigInteger.ZERO) {
+                println("* $this делится на простое число $it")
+                res = true
+            }
         }
+        println("Проверка ${if (!res) "пройдена" else "не пройдена"}\n")
+        return res
     }
-    println("Проверка ${if (res) "пройдена" else "не пройдена"}\n")
-    return res
-}
-
-fun gcd(x: Long, y: Long) {
-    var first: Long = abs(x)
-    var second: Long = abs(y)
-    if (first + second == 0L)
-        throw IllegalArgumentException("Args x and y mustn't be nulls")
-    while (first > 0) {
-        val temp = first
-        first = second % first
-        second = temp
-    }
-}
 
 /**
  * Функция генерирования p-битового числа
- *
- * @param p - число битов от 1 до 63
- */
-fun generate(p: Int): Long {
-    var generated = Random().nextLong()
-    if (generated % 2 == 0L) generated += 1
-    val max = Math.pow(2.0, (p - 1).toDouble()).toLong()
-    generated = max + generated % max
-    println("Сгенерированное число: $generated\n")
-    return generated
+ **/
+fun generate(p: Int): BigInteger = BigInteger(p, RANDOM).setBit(p - 1).setBit(0).apply {
+    println("Сгенерированное число $this\n")
 }
+
+fun testMillerRabin(x: BigInteger, testCount: Int = TESTS_COUNT): Boolean {
+
+    println("Тест Рабина-Миллера числа $x")
+
+    if (x.mod(BigInteger.valueOf(2)) == BigInteger.ZERO) throw IllegalArgumentException("Arg x mustn't divide by 2")
+
+    val two = BigInteger.valueOf(2)
+
+    var s = BigInteger.ONE
+    var t = x.minus(BigInteger.ONE).div(two)
+
+    while (t.mod(two) == BigInteger.ZERO) {
+        s = s.inc()
+        t = t.div(two)
+    }
+
+    println("s = $s, t = $t : ${x.minus(BigInteger.ONE)}= 2^$s * $t\n")
+
+    var result = true
+
+    for (i in 0 until testCount) {
+
+        println("Тест ${i+1}:\n")
+
+
+        val a = x.minus(BigInteger(x.bitLength() - 1, RANDOM))
+        println("a = $a")
+
+
+        val nod = a.gcd(x)
+        if (nod != BigInteger.ONE) {
+            println("НОД(a = $a, x = $x) = $nod - числа не взаимно простые, тест не пройден!\n")
+            result = false
+            continue
+        }
+
+        var success = false
+
+        val tt = a.modPow(t, x)
+        if (tt.compareTo(BigInteger.ONE) == 0 || tt.compareTo(x.minus(BigInteger.ONE)) == 0) {
+            println("abs($a^$t mod $x) = 1 : Тест пройден!")
+            success = true
+        }
+
+
+        var step = t.multiply(two)
+        while (step != two.pow(s.toInt()).multiply(t)) {
+            if (a.modPow(step, x) == x.minus(BigInteger.ONE)) {
+                println("$a^$step mod $x = -1 : Тест пройден!")
+                success = true
+                break
+            }
+            step = step.multiply(two)
+        }
+
+        if (!success) {
+            println("Тест не пройден!\n")
+            result = false
+        }
+
+    }
+
+    return result
+
+}
+
